@@ -1,3 +1,12 @@
+"""
+Author: @ MD AL MAMUN, @ AIMEN
+Date: 16/04/2025
+
+we  have used a different approach to randomize the password. To make it stronger, we set the minimum length to 8 and we ensure that the password contains at least one character from each selected set.
+Then we replace the random character in the password with one from the char_set.
+We also added a feedback mechanism to the password strength check as like the current days websites do.
+"""
+
 import secrets
 import string
 
@@ -11,12 +20,12 @@ class PasswordGenerator:
     def generate_password(self, length=16, include_uppercase=True, 
                          include_lowercase=True, include_digits=True, 
                          include_special=True):
-        # Validate parameters
+       
         if length < 8:
-            length = 8  # Enforce minimum length
+            length = 8  
         
         if not any([include_uppercase, include_lowercase, include_digits, include_special]):
-            # Default to lowercase if nothing selected
+            
             include_lowercase = True
         
         # Build character set
@@ -35,40 +44,40 @@ class PasswordGenerator:
         for _ in range(length):
             password += secrets.choice(char_set)
         
-        # Ensure password contains at least one character from each selected set
+        # Ensure password contains at least one character from each selected set to make it stronger
         if include_uppercase and not any(c in self.uppercase_letters for c in password):
-            password = self._replace_random_char(password, self.uppercase_letters)
+            password = self.replace_random_char(password, self.uppercase_letters)
         
         if include_lowercase and not any(c in self.lowercase_letters for c in password):
-            password = self._replace_random_char(password, self.lowercase_letters)
+            password = self.replace_random_char(password, self.lowercase_letters)
         
         if include_digits and not any(c in self.digits for c in password):
-            password = self._replace_random_char(password, self.digits)
+            password = self.replace_random_char(password, self.digits)
         
         if include_special and not any(c in self.special_chars for c in password):
-            password = self._replace_random_char(password, self.special_chars)
+            password = self.replace_random_char(password, self.special_chars)
         
         return password
     
-    def _replace_random_char(self, password, char_set):
-        # Replace random character in password with one from char_set
+    # replacing the random character in the password
+    def replace_random_char(self, password, char_set):
         pos = secrets.randbelow(len(password))
         char = secrets.choice(char_set)
         return password[:pos] + char + password[pos+1:]
     
+    # checking the password strength
     def check_password_strength(self, password):
-        # Evaluate password strength
         strength = 0
         feedback = []
         
-        # Length check
+        
         if len(password) < 8:
             feedback.append("Password is too short")
         elif len(password) >= 12:
             strength += 1
             feedback.append("Good length")
         
-        # Character variety check
+        
         if any(c in self.uppercase_letters for c in password):
             strength += 1
         else:
@@ -89,8 +98,8 @@ class PasswordGenerator:
         else:
             feedback.append("Missing special characters")
         
-        # Strength rating
-        rating = "Weak"
+        
+        rating = "Too Weak"
         if strength >= 4:
             rating = "Strong"
         elif strength >= 2:

@@ -1,3 +1,15 @@
+"""
+Author: @ MD AL MAMUN, @ AIMEN
+Date: 16/04/2025
+
+This is the storage file for the password vault. It does the following:
+1. Data storage and encryption.
+2. Adding, retrieving, updating, and deleting passwords.
+3. Listing services.
+4. Checking inactivity if the user is inactive for 5 minutes, the vault will be locked.
+
+"""
+
 import json
 import time
 import os
@@ -28,8 +40,8 @@ class PasswordVault:
             # Create new vault
             self.entries = {"version": "1.0", "passwords": []}
     
+    # saving the vault
     def _save_vault(self):
-        # Encrypt and save vault
         self.last_activity = time.time()
         
         encrypted_data = self.crypto_utils.encrypt(json.dumps(self.entries).encode())
@@ -39,7 +51,7 @@ class PasswordVault:
     
     def add_password(self, service, username, password, url="", notes=""):
         # Add new entry
-        entry_id = self._generate_id()
+        entry_id = os.urandom(8).hex()
         
         entry = {
             "id": entry_id,
@@ -56,8 +68,8 @@ class PasswordVault:
         self._save_vault()
         return entry_id
     
+    # Retrieving the password
     def get_password(self, entry_id=None, service=None):
-        # Retrieve entry by id or service name
         if entry_id:
             for entry in self.entries["passwords"]:
                 if entry["id"] == entry_id:
@@ -75,6 +87,7 @@ class PasswordVault:
         
         return None
     
+    # editing the password
     def update_password(self, entry_id, **kwargs):
         # Update entry fields
         for entry in self.entries["passwords"]:
@@ -89,8 +102,8 @@ class PasswordVault:
         
         return False
     
+    # deleting the password
     def delete_password(self, entry_id):
-        # Delete entry
         for i, entry in enumerate(self.entries["passwords"]):
             if entry["id"] == entry_id:
                 del self.entries["passwords"][i]
@@ -99,8 +112,8 @@ class PasswordVault:
         
         return False
     
+    # listing the services to visualize
     def list_services(self):
-        # List all services
         services = []
         for entry in self.entries["passwords"]:
             services.append({
@@ -112,12 +125,8 @@ class PasswordVault:
         self.last_activity = time.time()
         return services
     
-    def _generate_id(self):
-        # Generate unique ID for entry
-        return os.urandom(8).hex()
-    
+    # checking the inactivity [Extra credit]
     def check_inactivity(self, timeout=300):
-        # Check if vault should auto-lock due to inactivity
         if time.time() - self.last_activity > timeout:
             return True
         return False

@@ -1,3 +1,15 @@
+"""
+Author: @ MD AL MAMUN, @ AIMEN
+Date: 16/04/2025
+
+This is the encryption file for the password manager. It does the following:
+1. Deriving the key.
+2. Encrypting the data.
+3. Decrypting the data.
+4. Secure wiping the data.
+
+"""
+
 import base64
 import os
 from cryptography.fernet import Fernet
@@ -6,22 +18,21 @@ from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 class CryptoUtils:
     def __init__(self, master_password, salt):
-        self.key = self._derive_key(master_password, salt)
+        self.key = self.derive_key(master_password, salt)
         self.fernet = Fernet(self.key)
     
-    def _derive_key(self, password, salt):
-        # Convert master password to encryption key
-        kdf = PBKDF2HMAC(
+    def derive_key(self, password, salt):
+        keyDerivationFunction = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
             length=32,
             salt=salt,
             iterations=100000,
         )
-        key = base64.urlsafe_b64encode(kdf.derive(password.encode()))
+        key = base64.urlsafe_b64encode(keyDerivationFunction.derive(password.encode()))
         return key
     
     def encrypt(self, data):
-        # Encrypt data using derived key
+        # checking if the data is a string
         if isinstance(data, str):
             data = data.encode()
         return self.fernet.encrypt(data)
@@ -30,7 +41,5 @@ class CryptoUtils:
         return self.fernet.decrypt(token)
     
     def secure_wipe(self):
-        # Attempt to clear sensitive data from memory
-        # Note: This is difficult to guarantee in Python due to garbage collection
         self.key = None
         self.fernet = None

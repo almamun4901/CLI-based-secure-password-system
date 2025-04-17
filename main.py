@@ -1,3 +1,18 @@
+"""
+Author: @ MD AL MAMUN, @ AIMEN
+Date: 16/04/2025
+
+This is the main file for the password manager. It does the following:
+1. Authentication.
+2. Command loop.
+3. Adding, retrieving, updating, and deleting passwords.
+4. Generating passwords.
+5. Logging out.
+
+We have taken the help from different sources to make this project ( not particularly AI)
+Needed to learn about the cryptography (Fernet, PBKDF2HMAC, SHA256). The password generator wasn't that hard but the encryption was a bit challenging.
+
+"""
 import os
 import getpass
 import sys
@@ -14,13 +29,13 @@ class PasswordManager:
         self.vault = None
         self.password_generator = PasswordGenerator()
         self.is_authenticated = False
-        self.auto_lock_timeout = 300  # 5 minutes
+        self.auto_lock_timeout = 300 
         self.last_activity = time.time()
     
     def start(self):
         self._print_welcome()
         
-        # Check if first run
+        
         if not os.path.exists('config.json'):
             self._setup_master_password()
         else:
@@ -29,19 +44,18 @@ class PasswordManager:
         if self.is_authenticated:
             self._command_loop()
     
+    # printing the welcome message
     def _print_welcome(self):
-        print("=" * 50)
-        print("           SECURE PASSWORD MANAGER")
-        print("=" * 50)
         print("\nWelcome to your secure password vault\n")
     
+    # setting up the master password
     def _setup_master_password(self):
         print("Initial setup - create your master password")
         
         while True:
             password = getpass.getpass("Enter master password: ")
             
-            # Password strength check
+            
             strength = self.password_generator.check_password_strength(password)
             if strength["score"] < 3:
                 print("Master password is too weak:")
@@ -65,6 +79,7 @@ class PasswordManager:
         self.vault = PasswordVault(self.crypto_utils)
         self.is_authenticated = True
     
+    # login function
     def _login(self):
         attempts = 0
         max_attempts = 3
@@ -84,6 +99,7 @@ class PasswordManager:
         print("Too many failed attempts. Exiting.")
         sys.exit(1)
     
+    # command loop to ease the user
     def _command_loop(self):
         print("\nPassword Manager ready. Type 'help' for available commands.")
         
@@ -119,6 +135,7 @@ class PasswordManager:
             else:
                 print("Unknown command. Type 'help' for available commands.")
     
+    # showing the help message
     def _show_help(self):
         print("\nAvailable commands:")
         print("  help      - Show this help message")
@@ -130,6 +147,7 @@ class PasswordManager:
         print("  generate  - Generate a strong password")
         print("  exit      - Exit the password manager")
     
+    # adding the entry
     def _add_entry(self):
         service = input("Service name: ").strip()
         username = input("Username: ").strip()
@@ -141,12 +159,11 @@ class PasswordManager:
         else:
             password = getpass.getpass("Password: ")
         
-        url = input("URL (optional): ").strip()
-        notes = input("Notes (optional): ").strip()
-        
-        entry_id = self.vault.add_password(service, username, password, url, notes)
+
+        entry_id = self.vault.add_password(service, username, password)
         print(f"Password saved successfully with ID: {entry_id}")
     
+    # listing the entries
     def _list_entries(self):
         services = self.vault.list_services()
         
@@ -162,6 +179,7 @@ class PasswordManager:
         for entry in services:
             print(f"{entry['id']:<10} | {entry['service']:<20} | {entry['username']:<20}")
     
+    # getting the entry
     def _get_entry(self):
         search = input("Search by service name: ").strip()
         
@@ -192,12 +210,8 @@ class PasswordManager:
         print(f"Service:  {entry['service']}")
         print(f"Username: {entry['username']}")
         print(f"Password: {entry['password']}")
-        
-        if entry['url']:
-            print(f"URL:      {entry['url']}")
-        if entry['notes']:
-            print(f"Notes:    {entry['notes']}")
     
+    # updating the entry
     def _update_entry(self):
         self._list_entries()
         entry_id = input("\nEnter ID to update (or 0 to cancel): ").strip()
@@ -228,8 +242,6 @@ class PasswordManager:
             else:
                 password = getpass.getpass("New password: ")
         
-        url = input(f"URL [{entry['url']}]: ").strip()
-        notes = input(f"Notes [{entry['notes']}]: ").strip()
         
         # Prepare update
         updates = {}
@@ -239,10 +251,6 @@ class PasswordManager:
             updates['username'] = username
         if password:
             updates['password'] = password
-        if url:
-            updates['url'] = url
-        if notes:
-            updates['notes'] = notes
         
         if updates:
             if self.vault.update_password(entry_id, **updates):
@@ -252,6 +260,7 @@ class PasswordManager:
         else:
             print("No changes made.")
     
+    # deleting the entry
     def _delete_entry(self):
         self._list_entries()
         entry_id = input("\nEnter ID to delete (or 0 to cancel): ").strip()
@@ -267,6 +276,7 @@ class PasswordManager:
             else:
                 print("Failed to delete entry.")
     
+    # generating the password
     def _generate_password(self, show_output=True):
         if show_output:
             print("\nPassword Generator")
@@ -301,6 +311,7 @@ class PasswordManager:
         
         return password
     
+    # logging out the user
     def _logout(self):
         if self.vault:
             self.vault = None

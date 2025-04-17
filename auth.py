@@ -1,3 +1,16 @@
+"""
+Author: @ MD AL MAMUN, @ AIMEN
+Date: 16/04/2025
+
+This is the authentication file for the password manager. It does the following:
+1. Saving the config file.
+2. Creating the master password.
+3. Verifying the master password.
+4. Hashing the password.
+5. Comparing the password.
+
+"""
+
 import os
 import base64
 import hashlib
@@ -12,10 +25,7 @@ class Auth:
         self.hash = None
         self._load_config()
 
-    # def __init__(self):
-    #     self.salt = None
-    #     self.hash = None
-    
+    # saving the config file
     def _save_config(self):
         config = {
             "salt": base64.b64encode(self.salt).decode('utf-8'),
@@ -25,6 +35,8 @@ class Auth:
         with open(self.config_file, 'w') as f:
             json.dump(config, f)
 
+    # loading the config file
+    # if the config file is not found, it will return False
     def _load_config(self):
         try:
             with open(self.config_file, 'r') as f:
@@ -35,12 +47,14 @@ class Auth:
         except (FileNotFoundError, json.JSONDecodeError, KeyError):
             return False
     
+    # creating the master password
     def create_master_password(self, password):
         self.salt = os.urandom(16)
         self.hash = self._hash_password(password, self.salt)
         self._save_config()
         return True
     
+    # verifying the master password
     def verify_master_password(self, password):
         # Hash the provided password with stored salt
         hash_attempt = self._hash_password(password, self.salt)
@@ -48,6 +62,7 @@ class Auth:
         # Constant-time comparison to prevent timing attacks
         return self._secure_compare(hash_attempt, self.hash)
     
+    # hashing the password
     def _hash_password(self, password, salt):
         # PBKDF2HMAC for key derivation
         kdf = PBKDF2HMAC(
@@ -58,12 +73,9 @@ class Auth:
         )
         key = kdf.derive(password.encode())
         return base64.b64encode(key).decode('utf-8')
-    
-    # def _secure_compare(self, a, b):
-    #     return hashlib.compare_digest(a, b)
 
+    # password comparison
     def _secure_compare(self, a, b):
-        """A timing-attack resistant comparison function"""
         if len(a) != len(b):
             return False
         
